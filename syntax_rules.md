@@ -1,5 +1,7 @@
 # My notes for stan syntax and grammer
 
+https://mc-stan.org/docs/2_26/reference-manual/index.html
+
 Values in parentheses are keyword for certain expressions/statements
 Values also in braces mean optional grammer.
 *All statements/expressions are terminated by a semicolon*
@@ -52,10 +54,11 @@ for((a) in (b:c)){
 ```
 
 while loops:
-
+```
 while((bool_expr)){
     (expr/statement)
 }
+```
 ## comments
 
 Single line comments are started with `//`.

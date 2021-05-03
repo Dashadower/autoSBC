@@ -4,8 +4,50 @@
 #include <set>
 #include <string>
 #include "stream.hpp"
+#include "vari_map.hpp"
+#ifndef PARSER
+#define PARSER
 
 
+/*
+A class which contains a stack of characters, with a helper function
+that returns a string by combining its contents, without emptying the stack.
+*/
+class StringStack {
+  public:
+    void push(char character){
+      char_stack.push_back(character);
+    }
+    char top(){
+      return char_stack.back();
+    }
+
+    void pop(){
+      char_stack.pop_back();
+    }
+
+    void clear(){
+      char_stack.clear();
+    }
+    std::string get_string(){
+      return std::string(char_stack.begin(), char_stack.end());
+    }
+    
+    bool is_empty(){
+      return char_stack.empty();
+    }
+
+    int length(){
+      return char_stack.size();
+    }
+
+    char& operator[](int index){
+      return char_stack[index];
+    }
+
+  private:
+    std::vector<char> char_stack;
+};
 
 /*
 A class which separates programs by blocks. 
@@ -156,3 +198,104 @@ class BlockParser {
       
     }
 };
+
+
+typedef enum declarationState {idle, type_scalar, type_nonscalar, nonscalar_dim,
+                               bound, offset, multiplier, name, array_dim} declarationState;
+
+typedef struct VariableContext
+{
+  std::string name;
+  dataTypes varType;
+  bool isScalar;
+  std::vector<int> dim;
+  double lower;
+  double upper;
+  double offset;
+  double multiplier;
+  int array_dim;
+} VariableContext;
+
+
+/*
+real <lower=0, upper=1> var [1];
+type_scalar bound       name dimension
+
+vector<lower=0, upper=5, offset=0, multiplier=1>[5] var2[4]
+
+Data block parser:
+9-state, LR parser.
+Shift-Reduce parsing for each statement.
+Each state represents the position within a single data variable statement.
+The parser does not give any meaning to newline characters: semicolons are used
+for determining end of statements.
+
+<var_identifier>(<lower=,upper=,offset=,multiplier>)([<var_multidim>]) <var_name>([<var_arrdim>])
+
+*/
+class DeclarationParser {
+  public:
+    DeclarationParser(std::string& block_code) : parser_state(idle), block_code(block_code) {};
+    void parse(){
+      std::string staging_str;
+      char lookahead_char;
+      int char_index = 0;
+
+      bool isRunning = true;
+
+      while(isRunning){
+        lookahead_char = block_code[char_index++];
+        switch(parser_state){
+          // idle state: no varlables declared, currently not evaluating any
+          // variable declarations or arguments
+          case declarationState::idle:
+            if(lookahead_char == ' '){
+              continue;
+            }
+            else if(lookahead_char == ';'){
+              continue;
+            }
+            else{
+              staging_str += lookahead_char;
+            }
+            // end single character handling
+
+            if(staging_str == "vector"){
+
+            }
+
+            break;
+          
+          // identified scalar type declaration
+          case declarationState::type_scalar:
+            break;
+
+          // identified non-scalar type declaration
+          case declarationState::type_nonscalar:
+            break;
+          
+          // entering non-scalar dimension declaration brackets
+          case declarationState::nonscalar_dim:
+            break;
+          
+          // entering variable bound declaration
+          case declarationState::bound:
+            break;
+          
+          // entering variable name declaration
+          case declarationState::name:
+            break;
+          
+          // entering sequential array dimension declaration
+          case declarationState::array_dim:
+            break;
+        }
+      }
+    }
+  private:
+    declarationState parser_state;
+    const std::string block_code;
+    StringStack staging_stack;
+};
+
+#endif

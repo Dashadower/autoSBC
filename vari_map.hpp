@@ -1,7 +1,9 @@
 #include <map>
 #include <limits>
 #include <vector>
-#include "constants.hpp"
+#include <string>
+#ifndef VARIABLE_MAP
+#define VARIABLE_MAP
 
 /*
 A Variable map holds a map for all data/parameters, whether the values are known or not,
@@ -20,27 +22,54 @@ I'm going to have to take a closer look at at the Stan Math library if I want to
 keep compatibility between complex data types like simplex, ordered, and others.
 */
 
+
+typedef enum dataTypes {_int, real, ordered, simplex, unit_vector, 
+                        positive_ordered, row_vector, cov_matrix, corr_matrix,
+                        choleskey_factor_cov, choleskey_factor} dataTypes;
+
 class VariableData {
   public:
-    VariableData(std::string name, constants::dataTypes data_type, bool defined,
+    VariableData(std::string name, dataTypes data_type, bool defined,
                  bool is_parameter) : var_name(name), var_data_type(data_type),
                                       var_is_defined(defined), 
                                       var_is_parameter(is_parameter) {};
 
-    VariableData(std::string name, constants::dataTypes data_type, bool defined)
+    VariableData(std::string name, dataTypes data_type, bool defined)
                  : var_name(name), var_data_type(data_type),
                  var_is_defined(defined), var_is_parameter(false) {};
 
+    void evaluate(){
+
+    }
   private:
     std::string var_name;
-    constants::dataTypes var_data_type;
+    dataTypes var_data_type;
     bool var_is_defined;
     bool var_is_parameter;
     double lower_bound;
     double upper_bound;
 };
 
-template <class var_type>
-class ArrayVariable {
-
+class ArrayVariable : public VariableData {
 };
+
+
+class VariableMap {
+  public:
+    VariableMap() {};
+    const VariableData* get(std::string& var_name){
+      return vari_map[var_name];
+    }
+    void set(std::string& var_name, const VariableData* vari_data_ptr){
+      vari_map[var_name] = vari_data_ptr;
+    }
+    bool var_exists(std::string& var_name){
+      return vari_map.find(var_name) != vari_map.end() ? true : false;
+    }
+    
+  private:
+    std::map<std::string, const VariableData*> vari_map;
+};
+
+
+#endif

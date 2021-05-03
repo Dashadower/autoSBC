@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <queue>
+#include <deque>
 #ifndef DEPENDENCY_TREE
 #define DEPENDENCY_TREE
 
@@ -15,16 +17,26 @@ a b c d
  e  f
  \ /
   g
-would result in eval(g) = g(e, f) = g(e(a, b), f(c, d)) = g(e(eval(a), eval(b)), f(eval(c), eval(d)))
+would result in eval(g) = g(e, f) = g(e(a, b, c), f(c, d)) = g(e(eval(a), eval(b), eval(c)), f(eval(c), eval(d)))
 
-This would be useful in SBC for a particular parameter, which means we can "clamp" all unnecessary parameters,
+This might be useful in SBC for a particular parameter, which means we can "clamp" all unnecessary parameters,
 and simulate/fit just the necessary parameters.
 */
 
 class VarNode {
   public:
+  VarNode(std::string name) : var_name(name) {};
     void register_parent(VarNode* parent_ptr){
       parents.insert(parent_ptr);
+    }
+    void get_parents(std::queue<VarNode*>& parent_q){
+      for(auto it = parents.begin(); it != parents.end(); it++){
+        (*it)->get_parents(parent_q);
+        parent_q.push(*it);
+      }
+    }
+    const std::string get_name(){
+      return var_name;
     }
   private:
   std::string var_name;
